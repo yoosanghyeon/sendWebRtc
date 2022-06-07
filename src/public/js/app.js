@@ -1,6 +1,7 @@
 const socket = io();
 socket.connect()
 const image = document.getElementById('image');
+const video = document.getElementById('video');
 
 const firstUser = document.getElementById('firstUser')
 firstUser.innerText = "OTHER"
@@ -8,8 +9,14 @@ let myPeerConnections = {};
 let myDataChannels = [];
 
 socket.emit("join_room");
-socket.on('stream', (imageData) =>{
-  image.src = imageData
+
+socket.on('stream',async (buffer) =>{
+
+
+  var data = await arrayBufferToBase64(buffer)
+  var imageData = "data:image/;base64," + data; 
+  image.src =  imageData
+  
 
   if(firstUser.text !== 'firstUser'){
     firstUser.innerText = 'firstUser'
@@ -24,6 +31,27 @@ socket.on('stream', (imageData) =>{
   })
 
 })
+
+
+async function arrayBufferToBase64( buffer ) {
+	var binary = '';
+	var bytes = new Uint8Array( buffer );
+	var len = bytes.byteLength;
+	for (var i = 0; i < len; i++) {
+		binary += String.fromCharCode( bytes[ i ] );
+	}
+	return window.btoa( binary );
+}
+
+function _arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
+}
 
 // Socket Code
 socket.on("welcome", async (users, socketId) => {
@@ -130,7 +158,10 @@ async function makeConnection(socketId) {
 
     event.channel.addEventListener("message", (message) => {
       // console.log(message.data)
-      image.src = message.data
+      if(firstUser.text !== 'firstUser'){
+        image.src = message.data
+      }
+    
 
     });
 

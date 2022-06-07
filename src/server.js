@@ -4,6 +4,7 @@ import express from "express";
 import path from "path";
 import cors from 'cors';
 import fs from "fs";
+const bufferImage = require("buffer-image");
 
 const app = express();
 const port = 3001;
@@ -42,7 +43,7 @@ wsServer.on("connection", (socket) => {
     console.log('connection run ')
 
 
-  socket.on('video', (videoStream) =>{
+  socket.on('video',async (videoStream) =>{
 
     
     var messagelength = videoStream.toString().length;
@@ -55,10 +56,26 @@ wsServer.on("connection", (socket) => {
 
  
     if(users[roomName] && users[roomName].length > 0){
+      
       wsServer.sockets.to(users[roomName][0].id).emit("stream", videoStream);
     }
     
   })
+
+  socket.on('stream',async (videoStream) =>{
+
+    var messagelength = videoStream.toString().length;
+    console.log('messagelength', videoStream)
+    if(users[roomName] && users[roomName].length > 0){
+
+  
+      // const result = await bufferImage.from(videoStream)
+
+         
+      wsServer.sockets.to(users[roomName][0].id).emit("stream", videoStream);
+    }
+  })
+
 
 
   const roomName = 'TEST'
