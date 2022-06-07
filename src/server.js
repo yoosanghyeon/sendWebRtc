@@ -30,7 +30,8 @@ const wsServer = SocketIO(httpServer, {
   pingInterval: 2000,
   cors: {
     origin: '*',
-  }
+  },
+  maxHttpBufferSize: 100000000
 });
 
 let users = {};
@@ -46,10 +47,10 @@ wsServer.on("connection", (socket) => {
     
     var messagelength = videoStream.toString().length;
     console.log('messagelength', messagelength)
-    if (JSON.stringify(videoStream).length > 60000) {
+    // if (JSON.stringify(videoStream).length > 60000) {
       
-      return;
-    }
+    //   return;
+    // }
     // 0.1초당 20kb webrtc 전송 예정
 
  
