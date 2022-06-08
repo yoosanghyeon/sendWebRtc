@@ -1,10 +1,7 @@
 import http from  "http";
 import SocketIO from "socket.io";
 import express from "express";
-import path from "path";
-import cors from 'cors';
-import fs from "fs";
-const bufferImage = require("buffer-image");
+import sharp from "sharp";
 
 const app = express();
 const port = 3001;
@@ -17,7 +14,6 @@ app.use("/public", express.static(__dirname + "/public"));
 
 app.get("/", (_, res) => {
   res.render("home");
-
 });
 
 
@@ -44,19 +40,16 @@ wsServer.on("connection", (socket) => {
 
 
   socket.on('video',async (videoStream) =>{
-
-    
+ 
     var messagelength = videoStream.toString().length;
     console.log('messagelength', messagelength)
     // if (JSON.stringify(videoStream).length > 60000) {
-      
     //   return;
     // }
     // 0.1초당 20kb webrtc 전송 예정
 
  
     if(users[roomName] && users[roomName].length > 0){
-      
       wsServer.sockets.to(users[roomName][0].id).emit("stream", videoStream);
     }
     
@@ -65,15 +58,26 @@ wsServer.on("connection", (socket) => {
   socket.on('stream',async (videoStream) =>{
 
     var messagelength = videoStream.toString().length;
-    console.log('messagelength', videoStream)
-    if(users[roomName] && users[roomName].length > 0){
+    console.log('messagelength', messagelength)
+    if (messagelength > 30000) {
+      await imageCompress(videoStream).then(( convertedValue ) =>{
 
-  
-      // const result = await bufferImage.from(videoStream)
-
-         
-      wsServer.sockets.to(users[roomName][0].id).emit("stream", videoStream);
+        console.log(convertedValue.toString().length)
+        if(isRoomMember){
+          wsServer.sockets.to(users[roomName][0].id).emit("stream", convertedValue);
+        }
+    
+      }).catch((error) => {
+        console.log(error)
+      })
+     
+      
+    }else{
+      if(isRoomMember){
+        wsServer.sockets.to(users[roomName][0].id).emit("stream", videoStream);
+      }
     }
+
   })
 
 
@@ -101,7 +105,6 @@ wsServer.on("connection", (socket) => {
   });
   socket.on("answer", (answer, offerSendId, mySocketId) => {
     console.log('answer')  
-    
     wsServer.sockets.to(offerSendId).emit("answer", answer, mySocketId);
   });
   socket.on("ice", (ice, candidateSendID, candidateReceiveID) => {
@@ -142,7 +145,21 @@ wsServer.on("connection", (socket) => {
  });
  
 
+//  이미지 압축코드
+const imageCompress = async (imageSource) =>{
+  return await sharp(imageSource)
+  .webp({ 
+    lossless: false,
+    quality : 80
+  })
+  .toBuffer();
+  
+}
 
+// 현재 룸 인원 체크
+const isRoomMember = () =>{
+  return users[roomName] && users[roomName].length > 0
+}
 
 const handleListen = () => console.log(`Listening on http://localhost:${port}`);
 httpServer.listen(port, handleListen);
