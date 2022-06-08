@@ -45,7 +45,7 @@ wsServer.on("connection", (socket) => {
 
   socket.on('video',async (videoStream) =>{
 
-    
+    console.log('videoStream', videoStream)
     var messagelength = videoStream.toString().length;
     console.log('messagelength', messagelength)
     // if (JSON.stringify(videoStream).length > 60000) {
