@@ -45,13 +45,10 @@ wsServer.on("connection", (socket) => {
 
   socket.on('video',async (videoStream) =>{
 
-    console.log('videoStream', videoStream)
+    
     var messagelength = videoStream.toString().length;
+    console.log('videoStream', videoStream)
     console.log('messagelength', messagelength)
-    // if (JSON.stringify(videoStream).length > 60000) {
-      
-    //   return;
-    // }
     // 0.1초당 20kb webrtc 전송 예정
 
  
@@ -65,15 +62,13 @@ wsServer.on("connection", (socket) => {
   socket.on('stream',async (videoStream) =>{
 
     var messagelength = videoStream.toString().length;
-    console.log('messagelength', videoStream)
+    console.log('videoStream', videoStream)
+    console.log('messagelength', messagelength)
+    
     if(users[roomName] && users[roomName].length > 0){
-
-  
-      // const result = await bufferImage.from(videoStream)
-
-         
       wsServer.sockets.to(users[roomName][0].id).emit("stream", videoStream);
     }
+
   })
 
 
